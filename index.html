@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo</title>
+    <link rel="icon" type="image/png" href="image/favicon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --bg-color: #f3f4f6;
+            --text-color: #111827;
+            --card-color: #ffffff;
+            --border-color: #d1d5db;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #1f2937;
+            --text-color: #f9fafb;
+            --card-color: #374151;
+            --border-color: #4b5563;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        .card {
+            background-color: var(--card-color);
+            border-color: var(--border-color);
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .shake {
+            animation: shake 0.3s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% {
+                transform: translateX(0);
+            }
+            25% {
+                transform: translateX(-5px);
+            }
+            75% {
+                transform: translateX(5px);
+            }
+        }
+
+        .completed {
+            text-decoration: line-through;
+            color: gray;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center" data-theme="light">
+    <div class="card shadow-lg rounded-lg p-6 w-full max-w-md border">
+        <h1 class="text-2xl font-bold mb-4 text-center">Liste de tâches</h1>
+
+        <!-- Bouton pour changer de thème -->
+        <div class="text-right mb-4">
+            <button id="theme-toggle" class="p-2 rounded-lg focus:outline-none hover:bg-gray-200 dark:hover:bg-gray-600">
+                <svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m8.66-12.34l-.707.707m-13.32 0l-.707-.707m16.97 8.66h-1m-16 0H3m4.34 4.66l-.707-.707m13.32 0l-.707.707M12 5a7 7 0 100 14 7 7 0 000-14z" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Formulaire pour ajouter une tâche -->
+        <form id="task-form" class="flex mb-4">
+            <input 
+                type="text" 
+                id="task-input" 
+                placeholder="Ajouter une nouvelle tâche" 
+                class="flex-1 p-2 border rounded-l-lg focus:outline-none focus:ring focus:ring-blue-200"
+            >
+            <button 
+                type="submit" 
+                class="bg-blue-500 text-white px-4 py-2 rounded-r-lg hover:bg-blue-600"
+            >Ajouter</button>
+        </form>
+
+        <!-- Liste des tâches -->
+        <ul id="task-list" class="divide-y divide-gray-200">
+            <!-- Les éléments des tâches seront ajoutés dynamiquement ici -->
+        </ul>
+    </div>
+
+    <script>
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        const body = document.body;
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = body.getAttribute('data-theme');
+
+            if (currentTheme === 'light') {
+                body.setAttribute('data-theme', 'dark');
+                themeIcon.innerHTML = `
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21.752 15.002A9.718 9.718 0 0112.002 21c-5.385 0-9.748-4.364-9.748-9.748a9.718 9.718 0 016.002-8.75A7.5 7.5 0 1015.002 21a9.718 9.718 0 016.75-5.998z" />
+                `; // Lune
+            } else {
+                body.setAttribute('data-theme', 'light');
+                themeIcon.innerHTML = `
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m8.66-12.34l-.707.707m-13.32 0l-.707-.707m16.97 8.66h-1m-16 0H3m4.34 4.66l-.707-.707m13.32 0l-.707.707M12 5a7 7 0 100 14 7 7 0 000-14z" />
+                `; // Soleil
+            }
+        });
+
+        document.getElementById('task-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const taskInput = document.getElementById('task-input');
+            const taskValue = taskInput.value.trim();
+
+            if (taskValue) {
+                const taskList = document.getElementById('task-list');
+
+                // Créer un nouvel élément de tâche
+                const listItem = document.createElement('li');
+                listItem.className = "flex items-center justify-between py-2 fade-in";
+
+                listItem.innerHTML = `
+                    <label class="flex items-center space-x-2">
+                        <input type="checkbox" onchange="toggleTask(this)" class="rounded text-blue-500 focus:ring focus:ring-blue-300">
+                        <span>${taskValue}</span>
+                    </label>
+                    <button class="text-red-500 hover:text-red-700" onclick="removeTask(this)">Supprimer</button>
+                `;
+
+                taskList.appendChild(listItem);
+
+                // Effacer le champ d'entrée
+                taskInput.value = '';
+            } else {
+                taskInput.classList.add('shake');
+                setTimeout(() => taskInput.classList.remove('shake'), 300);
+            }
+        });
+
+        function toggleTask(checkbox) {
+            const taskText = checkbox.nextElementSibling;
+            if (checkbox.checked) {
+                taskText.classList.add('completed');
+            } else {
+                taskText.classList.remove('completed');
+            }
+        }
+
+        function removeTask(button) {
+            const listItem = button.parentElement;
+            listItem.classList.add('fade-in');
+            setTimeout(() => listItem.remove(), 500);
+        }
+    </script>
+</body>
+</html>
